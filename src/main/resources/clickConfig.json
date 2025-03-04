@@ -1,0 +1,185 @@
+{
+  "clicks": [
+    {
+      "name": "POS1",
+      "description": "点击屏幕上的位置 (100, 200)",
+      "hotkey": "F5",
+      "behaviors": [
+        {
+          "type": "MOUSE_CLICK",
+          "x": 100,
+          "y": 200,
+          "button": 1,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        }
+      ]
+    },
+    {
+      "name": "POS2",
+      "description": "画三角形",
+      "hotkey": "F6",
+      "behaviors": [
+        {
+          "type": "MOUSE_MOVE",
+          "x": 910,
+          "y": 490,
+          "button": 0,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        },
+        {
+          "type": "MOUSE_PRESS",
+          "x": 910,
+          "y": 490,
+          "button": 1,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        },
+        {
+          "type": "MOUSE_MOVE",
+          "x": 1010,
+          "y": 690,
+          "button": 0,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        },
+        {
+          "type": "MOUSE_MOVE",
+          "x": 810,
+          "y": 690,
+          "button": 0,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        },
+        {
+          "type": "MOUSE_MOVE",
+          "x": 910,
+          "y": 490,
+          "button": 0,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        },
+        {
+          "type": "MOUSE_RELEASE",
+          "x": 910,
+          "y": 490,
+          "button": 1,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        }
+      ]
+    },
+    {
+      "name": "POS3",
+      "description": "点击一系列点",
+      "hotkey": "F7",
+      "behaviors": [
+        {
+          "type": "MOUSE_MOVE",
+          "x": 100,
+          "y": 200,
+          "button": 0,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        },
+        {
+          "type": "MOUSE_CLICK",
+          "x": 100,
+          "y": 200,
+          "button": 1,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        },
+        {
+          "type": "MOUSE_MOVE",
+          "x": 200,
+          "y": 300,
+          "button": 0,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        },
+        {
+          "type": "MOUSE_CLICK",
+          "x": 200,
+          "y": 300,
+          "button": 1,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        },
+        {
+          "type": "MOUSE_MOVE",
+          "x": 300,
+          "y": 400,
+          "button": 0,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        },
+        {
+          "type": "MOUSE_CLICK",
+          "x": 300,
+          "y": 400,
+          "button": 1,
+          "key": 0,
+          "delay": 100,
+          "isAbsolute": true
+        }
+      ]
+    },
+    {
+      "name": "KEY_SEQUENCE",
+      "description": "按下并释放键盘上的 'A' 键",
+      "hotkey": "F8",
+      "behaviors": [
+        {
+          "type": "KEY_PRESS",
+          "x": 0,
+          "y": 0,
+          "button": 0,
+          "key": 65,
+          "delay": 100,
+          "isAbsolute": false
+        },
+        {
+          "type": "KEY_RELEASE",
+          "x": 0,
+          "y": 0,
+          "button": 0,
+          "key": 65,
+          "delay": 100,
+          "isAbsolute": false
+        },
+        {
+          "type": "KEY_PRESS",
+          "x": 0,
+          "y": 0,
+          "button": 0,
+          "key": 67,
+          "delay": 100,
+          "isAbsolute": false
+        },
+        {
+          "type": "KEY_RELEASE",
+          "x": 0,
+          "y": 0,
+          "button": 0,
+          "key": 67,
+          "delay": 100,
+          "isAbsolute": false
+        }
+      ]
+    }
+  ]
+}
