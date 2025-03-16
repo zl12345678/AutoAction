@@ -56,7 +56,8 @@ public class PathPlanningExample {
         }
 
         class Node {
-            int x, y;
+            final int x;
+            final int y;
             double g, h, f;
             Node parent;
             boolean inOpenList;
