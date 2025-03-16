@@ -23,20 +23,26 @@ public class PathPlanningExample {
             System.out.println("Could not open or find the image");
             return;
         }
-        Point start_point = new Point(30, 465);  // 左上角作为起点
-        Point end_point = new Point(150, 60); // 右下角作为终点
+        Point start = new Point(30, 465);
+        Point end = new Point(150, 60);
         // 使用A*寻路算法
-        int[][] path = aStarPathPlanning(start_point, end_point, image);
+        AStarPathPlanner planner = new AStarPathPlanner(
+                image,
+                start,
+                end,
+                200.0  // 障碍物阈值
+        );
+        int[][] path = planner.findPath();
         // 在图像上绘制路径
         for (int[] point : path) {
             Imgproc.circle(image, new Point(point[0], point[1]), 1, new Scalar(0,255,0), -1);
         }
         // 在图像上绘制起点和终点
-        Imgproc.circle(image, start_point, 5, new Scalar(0,0,255), -1);
-        Imgproc.circle(image, end_point, 5, new Scalar(255,0,0), -1);
+        Imgproc.circle(image, start, 5, new Scalar(0,0,255), -1);
+        Imgproc.circle(image, end, 5, new Scalar(255,0,0), -1);
         // 保存最终结果图像
         Imgcodecs.imwrite("path_planning_result.png", image);
-        System.out.println("Processing completed. Check the output images.");
+        System.out.println("Processing completed. Check the output images (path_planning_result.png).");
     }
 
     /**
