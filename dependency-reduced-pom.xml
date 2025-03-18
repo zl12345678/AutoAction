@@ -18,7 +18,7 @@
             <configuration>
               <transformers>
                 <transformer>
-                  <mainClass>org.example.AutoClicker</mainClass>
+                  <mainClass>com.auto.AutoClicker</mainClass>
                 </transformer>
               </transformers>
             </configuration>

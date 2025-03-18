@@ -1,4 +1,4 @@
-package org.example.entity;
+package com.auto.entity;
 
 /**
  * Behavior类用于封装具体的鼠标和键盘行为。

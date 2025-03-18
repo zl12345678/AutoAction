@@ -1,4 +1,4 @@
-package org.example;
+package com.auto;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.NativeHookException;

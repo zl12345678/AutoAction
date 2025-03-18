@@ -1,58 +1,30 @@
-package org.example.opencv;
+package com.auto.opencv.process;
 
 import org.opencv.core.Mat;
 import org.opencv.core.Point;
-import org.opencv.core.Scalar;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
 
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.*;
-public class PathPlanningExample {
 
+/**
+ * 路径规划器，负责 A* 算法的实现
+ */
+public class PathPlanner {
+    private Mat image;
+    private Point start;
+    private Point end;
+    private double obstacleThreshold;
 
-    public static void main(String[] args) {
-        URL url = ClassLoader.getSystemResource("lib/opencv/opencv_java4110.dll");
-        System.load(url.getPath());
-        // 加载图像
-        Mat image = Imgcodecs.imread("src/main/resources/yrcl.bmp", Imgcodecs.IMREAD_COLOR);
-
-        if (image.empty()) {
-            System.out.println("Could not open or find the image");
-            return;
-        }
-        Point start = new Point(30, 465);
-        Point end = new Point(150, 60);
-        // 使用A*寻路算法
-        AStarPathPlanner planner = new AStarPathPlanner(
-                image,
-                start,
-                end,
-                200.0  // 障碍物阈值
-        );
-        int[][] path = planner.findPath();
-        // 在图像上绘制路径
-        for (int[] point : path) {
-            Imgproc.circle(image, new Point(point[0], point[1]), 1, new Scalar(0,255,0), -1);
-        }
-        // 在图像上绘制起点和终点
-        Imgproc.circle(image, start, 5, new Scalar(0,0,255), -1);
-        Imgproc.circle(image, end, 5, new Scalar(255,0,0), -1);
-        // 保存最终结果图像
-        Imgcodecs.imwrite("path_planning_result.png", image);
-        System.out.println("Processing completed. Check the output images (path_planning_result.png).");
+    public PathPlanner(Mat image, Point start, Point end, double obstacleThreshold) {
+        this.image = image;
+        this.start = start;
+        this.end = end;
+        this.obstacleThreshold = obstacleThreshold;
     }
 
     /**
-     *  使用A*寻路算法
-     * @param start 开始点
-     * @param end 结束点
-     * @param image 需要寻路的图像
-     * @return 路径规划点数组
+     * 执行路径规划
      */
-    private static int[][] aStarPathPlanning(Point start, Point end, Mat image) {
+    public int[][] findPath() {
         // 预处理：将Mat数据缓存到二维数组提升访问速度
         double[][] mapData = new double[image.rows()][image.cols()];
         for (int y = 0; y < image.rows(); y++) {
@@ -86,20 +58,20 @@ public class PathPlanningExample {
 
         // 预计算移动代价（8方向）
         final double[] MOVE_COST = {1, 1, 1, 1, Math.sqrt(2), Math.sqrt(2), Math.sqrt(2), Math.sqrt(2)};
-        int[][] directions = {{-1,0}, {1,0}, {0,-1}, {0,1}, {-1,-1}, {-1,1}, {1,-1}, {1,1}};
+        int[][] directions = {{-1, 0}, {1, 0}, {0, -1}, {0, 1}, {-1, -1}, {-1, 1}, {1, -1}, {1, 1}};
 
         // 使用二维数组管理节点（替代字符串拼接的Hash）
         Node[][] nodeMap = new Node[image.rows()][image.cols()];
 
         // 验证起点终点可通行性
-/*        if (mapData[(int)start.y][(int)start.x] < 200 ||
-                mapData[(int)end.y][(int)end.x] < 200) {
+        if (mapData[(int) start.y][(int) start.x] < obstacleThreshold ||
+                mapData[(int) end.y][(int) end.x] < obstacleThreshold) {
             System.out.println("起点或终点不可通行");
             return new int[0][2];
-        }*/
+        }
 
-        Node startNode = new Node((int)start.x, (int)start.y);
-        Node endNode = new Node((int)end.x, (int)end.y);
+        Node startNode = new Node((int) start.x, (int) start.y);
+        Node endNode = new Node((int) end.x, (int) end.y);
         startNode.g = 0;
         startNode.calculateHeuristic(end);
         startNode.f = startNode.h; // f = g + h（此时g=0）
@@ -137,7 +109,7 @@ public class PathPlanningExample {
 
                 // 边界检查和可通行性检查
                 if (nx < 0 || nx >= image.cols() || ny < 0 || ny >= image.rows()) continue;
-                if (mapData[ny][nx] < 200) continue;
+                if (mapData[ny][nx] < obstacleThreshold) continue;
 
                 // 通过nodeMap检查节点状态
                 Node neighbor = nodeMap[ny][nx];
@@ -171,5 +143,37 @@ public class PathPlanningExample {
         System.out.println("未找到路径（迭代次数：" + iterations + "）");
         return new int[0][2];
     }
+    /**
+     * 计算两条线段的交叉点
+     *
+     * @param p1 线段1的起点
+     * @param p2 线段1的终点
+     * @param p3 线段2的起点
+     * @param p4 线段2的终点
+     * @return 交叉点，如果不存在则返回 null
+     */
+    private static Point calculateLineIntersection(Point p1, Point p2, Point p3, Point p4) {
+        double x1 = p1.x, y1 = p1.y;
+        double x2 = p2.x, y2 = p2.y;
+        double x3 = p3.x, y3 = p3.y;
+        double x4 = p4.x, y4 = p4.y;
 
+        double denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+        if (denominator == 0) {
+            return null; // 平行或重合
+        }
+
+        double x = ((x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4)) / denominator;
+        double y = ((x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4)) / denominator;
+
+        // 检查交叉点是否在线段上
+        if (x < Math.min(x1, x2) || x > Math.max(x1, x2) || y < Math.min(y1, y2) || y > Math.max(y1, y2)) {
+            return null;
+        }
+        if (x < Math.min(x3, x4) || x > Math.max(x3, x4) || y < Math.min(y3, y4) || y > Math.max(y3, y4)) {
+            return null;
+        }
+
+        return new Point(x, y);
+    }
 }

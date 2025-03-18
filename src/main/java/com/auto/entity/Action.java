@@ -1,4 +1,4 @@
-package org.example.entity;
+package com.auto.entity;
 
 import java.util.List;
 

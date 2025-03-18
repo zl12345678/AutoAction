@@ -1,11 +1,11 @@
-package org.example;
+package com.auto;
 
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 import com.sun.jna.platform.win32.User32;
 import com.sun.jna.platform.win32.WinDef;
 import com.sun.jna.ptr.IntByReference;
-import org.example.entity.Action;
-import org.example.entity.Behavior;
+import com.auto.entity.Action;
+import com.auto.entity.Behavior;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -40,7 +40,7 @@ public class AutoClicker {
 
     public static void main(String[] args) throws ClassNotFoundException {
         // 强制加载 HotkeyMenuSystem 类（触发静态块）
-        Class.forName("org.example.HotkeyMenuSystem");
+        Class.forName("com.auto.HotkeyMenuSystem");
 
         // 添加停止所有点击的热键绑定
         HotkeyMenuSystem.addHotkey(

@@ -1,15 +1,15 @@
-package org.example;
+package com.auto;
 
 import com.github.kwhat.jnativehook.GlobalScreen;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyEvent;
 import com.github.kwhat.jnativehook.keyboard.NativeKeyListener;
-import org.example.entity.Action;
+import com.auto.entity.Action;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.example.AutoClicker.getNativeKeyCode;
+import static com.auto.AutoClicker.getNativeKeyCode;
 
 /**
  * 热键菜单系统
