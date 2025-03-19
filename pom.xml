@@ -23,8 +23,13 @@
         <!-- 增强版按键模拟库 -->
         <dependency>
             <groupId>net.java.dev.jna</groupId>
+            <artifactId>jna</artifactId>
+            <version>5.17.0</version>
+        </dependency>
+        <dependency>
+            <groupId>net.java.dev.jna</groupId>
             <artifactId>jna-platform</artifactId>
-            <version>5.13.0</version>
+            <version>5.17.0</version>
         </dependency>
         <dependency>
             <groupId>org.json</groupId>
@@ -36,6 +41,13 @@
             <artifactId>junit</artifactId>
             <version>4.13.2</version>
             <scope>compile</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.opencv</groupId>  <!-- 自定义组 ID -->
+            <artifactId>opencv</artifactId>  <!-- 自定义库名称 -->
+            <version>4110</version>  <!-- 自定义版本号 -->
+            <scope>system</scope>
+            <systemPath>${project.basedir}/src/main/resources/lib/opencv/opencv-4110.jar</systemPath>  <!-- JAR 文件路径 -->
         </dependency>
     </dependencies>
     <build>

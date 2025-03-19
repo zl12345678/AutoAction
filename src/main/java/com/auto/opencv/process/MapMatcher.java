@@ -65,6 +65,24 @@ public class MapMatcher {
         Mat inliers = new Mat();
         return Calib3d.estimateAffinePartial2D(srcPts, dstPts, inliers, Calib3d.RANSAC, 3, 2000, 0.99, 10);
     }
+    /**
+     * 计算大地图和小地图的比例
+     *
+     * @param M 仿射变换矩阵
+     * @return 大地图和小地图的比例
+     */
+    public double calculateScale(Mat M) {
+        if (M == null || M.empty()) {
+            throw new IllegalArgumentException("仿射变换矩阵不能为空");
+        }
+
+        // 提取缩放系数
+        double a11 = M.get(0, 0)[0]; // 第一行第一列
+        double a22 = M.get(1, 1)[0]; // 第二行第二列
+
+        // 假设均匀缩放，返回 x 方向的比例
+        return a11;
+    }
 
     /**
      * 计算小地图中心在大地图中的坐标

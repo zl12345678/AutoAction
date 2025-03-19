@@ -20,10 +20,16 @@ public class GeometryUtils {
      */
     public static Point calculateRectIntersection(Point characterPosition, Mat smallMap, int[][] path) {
         // 计算小地图的矩形边
-        Point rectTopLeft = new Point(characterPosition.x - smallMap.cols() / 2.0, characterPosition.y - smallMap.rows() / 2.0);
-        Point rectTopRight = new Point(characterPosition.x + smallMap.cols() / 2.0, characterPosition.y - smallMap.rows() / 2.0);
-        Point rectBottomLeft = new Point(characterPosition.x - smallMap.cols() / 2.0, characterPosition.y + smallMap.rows() / 2.0);
-        Point rectBottomRight = new Point(characterPosition.x + smallMap.cols() / 2.0, characterPosition.y + smallMap.rows() / 2.0);
+//        Point rectTopLeft = new Point(characterPosition.x - smallMap.cols() / 2.0, characterPosition.y - smallMap.rows() / 2.0);
+//        Point rectTopRight = new Point(characterPosition.x + smallMap.cols() / 2.0, characterPosition.y - smallMap.rows() / 2.0);
+//        Point rectBottomLeft = new Point(characterPosition.x - smallMap.cols() / 2.0, characterPosition.y + smallMap.rows() / 2.0);
+//        Point rectBottomRight = new Point(characterPosition.x + smallMap.cols() / 2.0, characterPosition.y + smallMap.rows() / 2.0);
+
+        //Fixme:计算矩形边-在小矩形中点击移动，小地图矩形太大会形成多个交点，导致寻路异常
+        Point rectTopLeft = new Point(characterPosition.x - 50, characterPosition.y - 50);
+        Point rectTopRight = new Point(characterPosition.x + 50, characterPosition.y - 50);
+        Point rectBottomLeft = new Point(characterPosition.x - 50, characterPosition.y + 50);
+        Point rectBottomRight = new Point(characterPosition.x + 50, characterPosition.y + 50);
 
         // 小地图的矩形边
         Point[][] rectEdges = {{rectTopLeft, rectTopRight},    // 上边
@@ -91,4 +97,6 @@ public class GeometryUtils {
 
         return new Point(x, y);
     }
+
+
 }
