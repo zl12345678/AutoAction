@@ -1,6 +1,5 @@
 package com.auto.opencv.example;
 
-import com.auto.AutoClicker;
 import com.auto.opencv.process.MapMatcher;
 import com.auto.opencv.process.PathPlanner;
 import com.auto.opencv.utils.GameWindowClicker;
@@ -14,8 +13,6 @@ import org.opencv.core.Size;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
-import java.awt.*;
-import java.awt.event.InputEvent;
 import java.net.URL;
 
 /**
@@ -133,12 +130,12 @@ public class ProcessTest {
     public void torchlightFlow() {
         //1. ✅ 地图匹配-获取当前人物位置
         // 加载大地图和小地图图像
-        // 实际应为游戏中地图截图
+        // TODO:实际应为游戏中地图截图
         Mat largeMap = Imgcodecs.imread("src/main/resources/img/yuantu.bmp", Imgcodecs.IMREAD_COLOR);
         Mat smallMap = Imgcodecs.imread("src/main/resources/img/muban.png", Imgcodecs.IMREAD_COLOR);
 
         // 对大地图和小地图进行二值化处理
-        // 地图匹配是否进行二值化？
+        // Fixme:地图匹配是否进行二值化？
         Imgproc.threshold(largeMap, largeMap, 127, 255, Imgproc.THRESH_BINARY);
         Imgproc.threshold(smallMap, smallMap, 127, 255, Imgproc.THRESH_BINARY);
 
