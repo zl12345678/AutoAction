@@ -7,14 +7,19 @@ import org.opencv.core.Size;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgproc.Imgproc;
 
+import javax.swing.*;
+import java.awt.*;
+
 /**
- * 可视化器
+ * 图像可视化器
  */
 public class Visualizer {
     private Mat displayMat;
-
-    public Visualizer(Mat originalImage) {
-        this.displayMat = originalImage.clone();
+    private final String windowName;
+    public Visualizer(Mat image, String windowName) {
+        this.displayMat = image.clone();
+        this.windowName = windowName;
+        HighGui.namedWindow(windowName, HighGui.WINDOW_AUTOSIZE);
     }
 
     /**
@@ -63,20 +68,27 @@ public class Visualizer {
      * 显示结果图像
      */
     public void showResult() {
-        HighGui.imshow("路径规划结果", displayMat);
-        HighGui.waitKey(0);
-        HighGui.destroyAllWindows();
+        HighGui.imshow(windowName, displayMat);
+        HighGui.waitKey(1);
+//        HighGui.destroyAllWindows();
     }
+
     /**
-     * 显示结果图像
+     *
+     * @param winName 窗口名
+     * @param displayMat 显示图像
      */
-    public void showResult(Mat displayMat) {
-        HighGui.imshow("自定义显示结果", displayMat);
-        HighGui.waitKey(0);
-        HighGui.destroyAllWindows();
+    public void showResult(String winName,Mat displayMat) {
+        HighGui.imshow(winName, displayMat);
     }
 
     public void drawPoint(Point point, Scalar scalar) {
         Imgproc.circle(displayMat, point, 5, scalar, -1);
+    }
+    public void updateDisplayMat(Mat newDisplayMat) {
+        this.displayMat = newDisplayMat;
+    }
+    public void close() {
+        HighGui.destroyWindow(windowName);
     }
 }

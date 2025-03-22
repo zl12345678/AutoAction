@@ -3,20 +3,19 @@ package com.auto.opencv.example;
 import com.auto.opencv.process.MapMatcher;
 import com.auto.opencv.process.PathPlanner;
 import com.auto.opencv.utils.GameWindowClicker;
-import com.auto.opencv.utils.GeometryUtils;
 import com.auto.opencv.utils.Visualizer;
 import org.junit.Test;
-import org.opencv.core.Mat;
-import org.opencv.core.Point;
-import org.opencv.core.Scalar;
-import org.opencv.core.Size;
-import org.opencv.imgcodecs.Imgcodecs;
-import org.opencv.imgproc.Imgproc;
+import org.opencv.core.*;
 
+import java.awt.image.BufferedImage;
 import java.net.URL;
 
+import static com.auto.opencv.process.ArrowMatcher.matchArrow;
+import static com.auto.opencv.utils.ImageProcessor.*;
+import static java.lang.Thread.sleep;
+
 /**
- * 路径规划示例主类
+ * 路径规划示例主类 - 以 曙光大道 地图测试
  */
 public class ProcessTest {
     static {
@@ -25,191 +24,215 @@ public class ProcessTest {
         System.load(url.getPath());
     }
 
-    // 路径规划示例
+//    地图匹配及规划路线可视化
     @Test
-    public void pathPlanning() {
-        // 加载图像
-        Mat image = Imgcodecs.imread("src/main/resources/img/yrcl.bmp", Imgcodecs.IMREAD_COLOR);
-        if (image.empty()) {
-            System.out.println("Could not open or find the image");
-            return;
+    public void mapMatchTest() {
+        // 加载大地图和游戏窗口截图
+
+        Mat arrowTemplate = loadImage("src/main/resources/img/arrow_template2.bmp");
+        // 创建 GameWindowClicker 实例
+        Visualizer visualizer = new Visualizer(new Mat(), "bbb");
+        while (true) {
+            try {
+                Mat largeMap = loadImage("src/main/resources/img/sggd/largeMap_2.bmp");
+                Mat largeMapClone = largeMap.clone();
+                // 创建 GameWindowClicker 实例
+                GameWindowClicker gameWindowClicker = new GameWindowClicker("Torchlight: Infinite  ");
+
+                // 捕获游戏窗口截图
+                BufferedImage gameWindowImage = gameWindowClicker.captureGameWindow(gameWindowClicker.getGameWindowX(),
+                        gameWindowClicker.getGameWindowY(),
+                        gameWindowClicker.getGameWindowWidth(),
+                        gameWindowClicker.getGameWindowHeight());
+                if (gameWindowImage == null) {
+                    throw new RuntimeException("无法捕获游戏窗口截图");
+                }
+
+                // 将 BufferedImage 转换为 OpenCV 的 Mat
+                Mat gameWindow = bufferedImageToMat(gameWindowImage);
+
+                // 截取小地图区域
+                Mat smallMap = extractRegion(gameWindow, new Rect(0, 100, 200, 200));
+
+                // 匹配人物箭头
+                Point arrowCenter = matchArrow(smallMap, arrowTemplate);
+
+                // 截取箭头周围的匹配区域
+                Mat matchArea = extractCenterArea(smallMap, arrowCenter, 100);
+
+                // 匹配大地图并计算人物位置
+                Point characterPosition = matchLargeMap(largeMap, matchArea);
+
+                // 设置起点和终点
+                Point start = characterPosition;
+                Point end = new Point(140, 110);
+                // 路径规划
+                int[][] path = planPath(largeMap, start, end, 200.0);
+//                visualizer.updateDisplayMat(largeMap);
+                // 绘制路径、起点和终点
+                visualizer.updateDisplayMat(largeMapClone);
+                visualizer.drawMatchArea(characterPosition, new Size(matchArea.cols(), matchArea.rows()));
+                visualizer.drawCharacterPosition(characterPosition);
+                visualizer.drawPath(path);
+                visualizer.drawStartAndEnd(start, end);
+                visualizer.showResult();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
-
-        // 设置起点和终点
-        Point start = new Point(30, 465);
-        Point end = new Point(150, 60);
-
-        // 创建路径规划器
-        PathPlanner planner = new PathPlanner(image, start, end, 200.0);
-
-        // 执行路径规划
-        int[][] path = planner.findPath();
-
-        // 创建路径可视化器
-        Visualizer visualizer = new Visualizer(image);
-
-        // 绘制路径、起点和终点
-        visualizer.drawPath(path);
-        visualizer.drawStartAndEnd(start, end);
-
-        // 显示结果图像
-        visualizer.showResult();
     }
 
-    // 地图匹配示例
+    //    在小地图上定位人物箭头
     @Test
-    public void MapMatching() {
-        // 加载大地图和小地图图像
-        Mat largeMap = Imgcodecs.imread("src/main/resources/img/yuantu.bmp", Imgcodecs.IMREAD_COLOR);
-        Mat smallMap = Imgcodecs.imread("src/main/resources/img/muban.png", Imgcodecs.IMREAD_COLOR);
+    public void locatingArrow() {
+        while (true) {
+            GameWindowClicker gameWindowClicker = new GameWindowClicker("Torchlight: Infinite  ");
 
-        // 对大地图和小地图进行二值化处理
-//        Imgproc.threshold(largeMap, largeMap, 127, 255, Imgproc.THRESH_BINARY);
-//        Imgproc.threshold(smallMap, smallMap, 127, 255, Imgproc.THRESH_BINARY);
+            // 捕获游戏窗口截图
+            BufferedImage gameWindowImage = gameWindowClicker.captureGameWindow(gameWindowClicker.getGameWindowX(),
+                    gameWindowClicker.getGameWindowY(),
+                    gameWindowClicker.getGameWindowWidth(),
+                    gameWindowClicker.getGameWindowHeight());
+            if (gameWindowImage == null) {
+                throw new RuntimeException("无法捕获游戏窗口截图");
+            }
 
-        // 创建地图匹配器
-        MapMatcher mapMatcher = new MapMatcher(largeMap, smallMap);
+            // 将 BufferedImage 转换为 OpenCV 的 Mat
+            Mat gameWindow = bufferedImageToMat(gameWindowImage);
 
-        // 执行地图匹配
-        Mat M = mapMatcher.match();
-        if (M.empty()) {
-            System.out.println("匹配失败，请调整参数或检查图像。");
-            return;
+            // 截取小地图区域
+            Mat smallMap = extractRegion(gameWindow, new Rect(0, 100, 200, 200));
+            Mat arrowTemplate = loadImage("src/main/resources/img/arrow_template2.bmp");
+            // 匹配人物箭头
+            Point arrowCenter = matchArrow(smallMap, arrowTemplate);
+            Visualizer visualizer = new Visualizer(smallMap, "小地图位置");
+            visualizer.drawPoint(arrowCenter, new Scalar(0, 255, 0));
+            visualizer.showResult();
         }
 
-        // 计算小地图中心在大地图中的坐标-人物在大地图中的位置坐标
-        Point characterPosition = mapMatcher.calculateCenter(M);
-        if (characterPosition == null) {
-            System.out.println("变换后的坐标数据无效。");
-            return;
+    }
+
+    //    地图匹配-定位人物位置
+    @Test
+    public void locatingPlayer() throws InterruptedException {
+        Mat largeMap = loadImage("src/main/resources/img/sggd/largeMap_2.bmp");
+        Visualizer visualizer = new Visualizer(largeMap, "das");
+        sleep(2000);
+        while (true) {
+            Mat largeMapClone = largeMap.clone();
+            Point characterPosition = getMapCurrentPoint(largeMap);
+            visualizer.updateDisplayMat(largeMapClone);
+            visualizer.drawMatchArea(characterPosition, new Size(100, 100));
+            visualizer.drawCharacterPosition(characterPosition);
+            visualizer.showResult();
         }
-        System.out.printf("人物坐标: (%.2f, %.2f)%n", characterPosition.x, characterPosition.y);
-
-        // 创建地图可视化器
-        Mat largeMapBy = Imgcodecs.imread("src/main/resources/img/yrcl.bmp", Imgcodecs.IMREAD_COLOR);
-        Visualizer visualizer = new Visualizer(largeMapBy);
-
-        // 绘制匹配区域和人物位置
-        visualizer.drawMatchArea(characterPosition, new Size(smallMap.cols(), smallMap.rows()));
-        visualizer.drawCharacterPosition(characterPosition);
-
-        // 显示结果图像
-        visualizer.showResult();
-
-        //路径规划
-        // 设置起点和终点
-        Point start = characterPosition;
-        Point end = new Point(150, 60);
-        // 创建路径规划器
-        PathPlanner planner = new PathPlanner(largeMapBy, start, end, 200.0);
-        int[][] path = planner.findPath();
-
-        // 绘制路径、起点和终点
-        visualizer.drawPath(path);
-        visualizer.drawStartAndEnd(start, end);
-
-        // 显示结果图像
-//        visualizer.showResult();
-
-        // 交点（临时终点）
-        Point intersectionPoint = GeometryUtils.calculateRectIntersection(characterPosition, smallMap, path);
-        // 绘制交点
-        visualizer.drawPoint(intersectionPoint, new Scalar(0, 255, 255)); // 使用黄色绘制交点
-        // 显示结果图像
-        visualizer.showResult();
-
     }
 
     /**
-     * 无坐标游戏寻路流程示例
-     * 1. 地图匹配-获取当前人物位置
-     * 2. 完整路径规划-获取完整规划路径
-     * 3. 当前视野路径规划-坐标转换-点击坐标
+     * 获取当前在大地图的坐标
      */
-    @Test
-    public void torchlightFlow() {
-        //1. ✅ 地图匹配-获取当前人物位置
-        // 加载大地图和小地图图像
-        // TODO:实际应为游戏中地图截图
-        Mat largeMap = Imgcodecs.imread("src/main/resources/img/yuantu.bmp", Imgcodecs.IMREAD_COLOR);
-        Mat smallMap = Imgcodecs.imread("src/main/resources/img/muban.png", Imgcodecs.IMREAD_COLOR);
+    public Point getMapCurrentPoint(Mat largeMap) {
+//        Visualizer visualizer = new Visualizer(largeMap, "aaa");
+        // 创建 GameWindowClicker 实例
+        GameWindowClicker gameWindowClicker = new GameWindowClicker("Torchlight: Infinite  ");
 
-        // 对大地图和小地图进行二值化处理
-        // Fixme:地图匹配是否进行二值化？
-        Imgproc.threshold(largeMap, largeMap, 127, 255, Imgproc.THRESH_BINARY);
-        Imgproc.threshold(smallMap, smallMap, 127, 255, Imgproc.THRESH_BINARY);
-
-        // 创建地图匹配器
-        MapMatcher mapMatcher = new MapMatcher(largeMap, smallMap);
-
-        // 执行地图匹配
-        Mat M = mapMatcher.match();
-        if (M.empty()) {
-            System.out.println("匹配失败，请调整参数或检查图像。");
-            return;
+        // 捕获小地图
+        BufferedImage gameWindowImage = gameWindowClicker.captureGameWindow(gameWindowClicker.getGameWindowX(),
+                gameWindowClicker.getGameWindowY()+100,
+                200,
+                200);
+        if (gameWindowImage == null) {
+            throw new RuntimeException("无法捕获游戏窗口截图");
         }
-        // 提取缩放系数 大地图与小地图的缩放比例
-        double scale = mapMatcher.calculateScale(M);
-        System.out.printf("大地图与小地图的缩放比例为%f", scale);
-        // 计算小地图中心在大地图中的坐标-人物在大地图中的位置坐标
-        Point characterPosition = mapMatcher.calculateCenter(M);
-        if (characterPosition == null) {
-            System.out.println("变换后的坐标数据无效。");
-            return;
-        }
-        System.out.printf("人物坐标: (%.2f, %.2f)%n", characterPosition.x, characterPosition.y);
 
-        // 此图为手动绘制的二值化地图
-        Mat binaryMap = Imgcodecs.imread("src/main/resources/img/yrcl.bmp", Imgcodecs.IMREAD_COLOR);
-        // 创建地图可视化器
-        Visualizer visualizer = new Visualizer(binaryMap);
+        // 将 BufferedImage 转换为 OpenCV 的 Mat
+        Mat smallMap = bufferedImageToMat(gameWindowImage);
 
-        // 绘制匹配区域和人物位置
-        visualizer.drawMatchArea(characterPosition, new Size(smallMap.cols(), smallMap.rows()));
-        visualizer.drawCharacterPosition(characterPosition);
+        // 截取小地图区域
+        Mat arrowTemplate = loadImage("src/main/resources/img/arrow_template2.bmp");
+        // 匹配人物箭头
+        Point arrowCenter = matchArrow(smallMap, arrowTemplate);
 
-        // 显示结果图像
-//        visualizer.showResult();
-
-        //2.✅  完整路径规划-获取完整规划路径
-        // 设置起点和终点
-        Point start = characterPosition;
-        Point end = new Point(150, 60);
-        // 创建路径规划器
-        PathPlanner planner = new PathPlanner(binaryMap, start, end, 200.0);
-        int[][] path = planner.findPath();
-
-        // 绘制路径、起点和终点
-        visualizer.drawPath(path);
-        visualizer.drawStartAndEnd(start, end);
-
-        // 显示结果图像
-//        visualizer.showResult();
-
-        //3. ✅当前视野路径规划-获取下一步点击位置
-        // 交点（临时终点）
-        Point intersectionPoint = GeometryUtils.calculateRectIntersection(characterPosition, smallMap, path);
-        // 绘制交点
-//        visualizer.drawPoint(intersectionPoint, new Scalar(0, 255, 255)); // 使用黄色绘制交点
-        // 显示结果图像
-//        visualizer.showResult();
-
-
-        // 游戏相关
-        // 此处测试用，使用1.txt的文本窗口中心作为测试点击点
-        GameWindowClicker gameWindowClicker = new GameWindowClicker("1.txt - Notepad");
-//        坐标转换为游戏坐标
-        Point point = gameWindowClicker.convertToGameWindow(intersectionPoint, largeMap.cols(), largeMap.rows());
-
-//        测试
-        int[] gameWindowSize = gameWindowClicker.getGameWindowSize();
-        point.x = (double) gameWindowSize[0] / 2;
-        point.y = (double) gameWindowSize[1] / 2;
-
-        System.out.println("转换后的游戏坐标为：" + point);
-//        游戏坐标转换为屏幕坐标并点击
-        gameWindowClicker.clickInGameWindow((int) point.x, (int) point.y);
-
+        // 截取箭头周围的匹配区域
+        Mat matchArea = extractCenterArea(smallMap, arrowCenter, 100);
+        // 匹配大地图并计算人物位置
+        Point characterPosition = matchLargeMap(largeMap, matchArea);
+        return new Point((int) characterPosition.x, (int) characterPosition.y);
     }
 
+    /**
+     * 寻路测试
+     */
+    @Test
+    public void wayFindingTest() {
+        // 加载大地图和游戏窗口截图
+        Mat largeMap = loadImage("src/main/resources/img/sggd/largeMap_2.bmp");
+        Point characterPosition = getMapCurrentPoint(largeMap);
+        GameWindowClicker gameWindowClicker = new GameWindowClicker("Torchlight: Infinite  ");
+
+        // 设置起点和终点
+        Point start = characterPosition;
+        Point end = new Point(140, 110);
+        // 路径规划
+        int[][] path = planPath(largeMap, start, end, 200.0);
+
+        // 在游戏中点击路径点，使人物移动
+        gameWindowClicker.clickIn();
+        for (int[] point : path) {
+//        for (int i = 0; i < 700; i++) {
+//            int[] point = path[i];
+            int x = gameWindowClicker.getGameWindowWidth() / 2 + gameWindowClicker.getGameWindowX();
+            int y = gameWindowClicker.getGameWindowHeight() / 2 + gameWindowClicker.getGameWindowY();
+            Point currentPoint = new Point(x, y);
+            try {
+                currentPoint = getMapCurrentPoint(largeMap);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            Point targetPoint = new Point(point[0], point[1]);
+
+            if (getDistance(targetPoint, currentPoint) > 200) {
+                System.out.println("错误判断：currentPoint:" + currentPoint.x + "," + currentPoint.y + " -->" + targetPoint.x + "," + targetPoint.y);
+                continue;
+            }
+            if (getDistance(targetPoint, end) < 5) {
+                System.out.println("已到达终点附近");
+                gameWindowClicker.clickOut();
+                break;
+            }
+            // 将地图坐标转换为游戏窗口坐标
+            Point gamePoint = gameWindowClicker.convertToGameWindow(currentPoint, targetPoint, new Point(x, y), 80);
+            System.out.println("正确判断1：currentPoint:" + currentPoint.x + "," + currentPoint.y + " -->" + targetPoint.x + "," + targetPoint.y);
+            System.out.println("正确判断2：gameWindow:" + x + "," + y + " -->" + gamePoint.x + "," + gamePoint.y);
+            // 点击游戏窗口中的坐标
+            gameWindowClicker.clickInGameWindow((int) gamePoint.x, (int) gamePoint.y);
+            while (true) {
+                currentPoint = getMapCurrentPoint(largeMap);
+                // 将地图坐标转换为游戏窗口坐标
+                gamePoint = gameWindowClicker.convertToGameWindow(currentPoint, targetPoint, new Point(x, y), 80);
+                // 点击游戏窗口中的坐标
+                gameWindowClicker.clickInGameWindow((int) gamePoint.x, (int) gamePoint.y);
+                System.out.println("正确判断1：currentPoint:" + currentPoint.x + "," + currentPoint.y + " -->" + targetPoint.x + "," + targetPoint.y);
+                System.out.println("正确判断2：gameWindow:" + x + "," + y + " -->" + gamePoint.x + "," + gamePoint.y);
+                if (getDistance(targetPoint, currentPoint) < 10) {
+                    System.out.println("已到达目标点附近");
+                    break;
+                }
+            }
+        }
+    }
+
+
+    // 匹配大地图并计算人物位置
+    private Point matchLargeMap(Mat largeMap, Mat matchArea) {
+        MapMatcher mapMatcher = new MapMatcher(largeMap, matchArea);
+        Mat M = mapMatcher.match();
+        return mapMatcher.calculateCenter(M);
+    }
+
+    // 路径规划
+    private int[][] planPath(Mat map, Point start, Point end, double obstacleThreshold) {
+        PathPlanner planner = new PathPlanner(map, start, end, obstacleThreshold);
+        return planner.findPath();
+    }
 }
