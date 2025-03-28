@@ -1,6 +1,10 @@
 package com.auto.opencv;
 
+import com.auto.opencv.process.MapMatcher;
+import com.auto.opencv.utils.GameWindowClicker;
+import com.auto.opencv.utils.ImageProcessor;
 import org.opencv.core.*;
+import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
@@ -12,6 +16,8 @@ import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
 import java.net.URL;
 
+import static com.auto.opencv.utils.ImageProcessor.extractRegion;
+
 public class BinarizationGUI {
     JPanel mainPanel;
     private Mat originalImage;
@@ -22,9 +28,10 @@ public class BinarizationGUI {
     private JCheckBox binaryCheckBox = new JCheckBox();
     private JFrame imageViewerFrame;
     private JLabel imageLabel;
+
     public BinarizationGUI() {
         JFrame frame = new JFrame("图像处理工具 v2.0");
-        frame.setSize(500, 300); // 调整主窗口大小
+        frame.setSize(400, 300); // 调整主窗口大小
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
         tabbedPane = new JTabbedPane();
@@ -48,24 +55,31 @@ public class BinarizationGUI {
         // 使用 GridBagLayout 布局
         JPanel controlPanel = new JPanel(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5); // 设置组件间距
+        gbc.insets = new Insets(2, 2, 2, 2); // 设置组件间距
         gbc.fill = GridBagConstraints.HORIZONTAL; // 组件水平填充
 
         // 添加按钮
         addButton(controlPanel, gbc, "截图载入", e -> captureScreenshot(), 0, 0);
         addButton(controlPanel, gbc, "本地载入", e -> loadImage(), 1, 0);
         addLabel(controlPanel, gbc, "二值化阈值:", 0, 1);
-        addSlider(controlPanel,thresholdSlider,false,e ->  processImage(), gbc, 1, 1);
+        addSlider(controlPanel, thresholdSlider, false, e -> processImage(), gbc, 1, 1);
         addLabel(controlPanel, gbc, "二值化:", 0, 2);
-        addCheckBox(controlPanel,binaryCheckBox, gbc, "启用二值化", e -> {
+        addCheckBox(controlPanel, binaryCheckBox, gbc, "启用二值化", e -> {
             processImage(); // 复选框状态改变时，调用 processImage 方法
-             // 启用或禁用滑块
+            // 启用或禁用滑块
             thresholdSlider.setEnabled(binaryCheckBox.isSelected());
         }, 1, 2);
         // 添加保留灰色区域的按钮
         addButton(controlPanel, gbc, "保留灰色区域", e -> preserveGrayArea(), 0, 3);
         addButton(controlPanel, gbc, "保存图片", e -> saveImage(), 0, 3);
         addButton(controlPanel, gbc, "图像预览", e -> openHighGuiWindow(), 1, 3);
+
+
+        addButton(controlPanel, gbc, "地图匹配", e -> matchMap(), 0, 4);
+        addLabel(controlPanel, gbc, "缩放范围:", 0, 5);
+        JSlider scaleSlider = new JSlider(50, 200, 100); // 50%-200%
+        addSlider(controlPanel, scaleSlider, true, e -> {
+        }, gbc, 1, 5);
 
         mainPanel.add(controlPanel, BorderLayout.NORTH);
         return mainPanel;
@@ -75,7 +89,7 @@ public class BinarizationGUI {
     private void addButton(JPanel panel, GridBagConstraints gbc, String text, java.awt.event.ActionListener listener, int x, int y) {
         JButton button = new JButton(text);
         button.addActionListener(listener);
-        button.setBackground(new Color(70, 130, 180)); // 设置背景色
+        button.setBackground(new Color(0, 0, 0)); // 设置背景色
         button.setForeground(Color.WHITE); // 设置文字颜色
         button.setFont(new Font("微软雅黑", Font.BOLD, 14)); // 设置字体
         button.setFocusPainted(false); // 去除焦点边框
@@ -103,14 +117,37 @@ public class BinarizationGUI {
         panel.add(slider, gbc);
     }
 
-// 添加复选框的辅助方法
-    private void addCheckBox(JPanel panel,JCheckBox checkBox, GridBagConstraints gbc, String text, ActionListener listener, int x, int y) {
-       checkBox.setText(text);
+    // 添加复选框的辅助方法
+    private void addCheckBox(JPanel panel, JCheckBox checkBox, GridBagConstraints gbc, String text, ActionListener listener, int x, int y) {
+        checkBox.setText(text);
         checkBox.setFont(new Font("微软雅黑", Font.PLAIN, 14)); // 设置字体
         checkBox.addActionListener(listener); // 绑定监听器
         gbc.gridx = x;
         gbc.gridy = y;
         panel.add(checkBox, gbc);
+    }
+
+    private void matchMap() {
+        // 1. 截取小地图
+        GameWindowClicker clicker = new GameWindowClicker("Torchlight: Infinite  ");
+        BufferedImage gameWindow = clicker.captureGameWindow(clicker.getGameWindowX(),
+                clicker.getGameWindowY() + 100,
+                200,
+                200);
+        Mat smallMap = ImageProcessor.bufferedImageToMat(gameWindow);
+
+        // 2. 加载大地图
+        Mat largeMap = ImageProcessor.loadImage("src/main/resources/img/sggd/largeMap_2.bmp");
+
+        // 3. 多尺度匹配
+        MapMatcher matcher = new MapMatcher(largeMap, smallMap);
+// 多尺度匹配参数
+        double[] scales = {0.5, 0.6, 0.7, 0.8, 0.9, 1.0, 1.1, 1.2, 1.3, 1.4, 1.5, 1.6, 1.7, 1.8, 1.9, 2.0};
+        // 执行多尺度匹配
+        double v = matcher.matchByResize(largeMap, smallMap, scales);
+
+        System.out.println("匹配结果为" + v);
+
     }
 
     private void processImage() {
@@ -138,6 +175,7 @@ public class BinarizationGUI {
             e.printStackTrace();
         }
     }
+
     private void preserveGrayArea() {
         if (originalImage == null) return;
 
@@ -171,7 +209,6 @@ public class BinarizationGUI {
             e.printStackTrace();
         }
     }
-
 
 
     private void openHighGuiWindow() {
@@ -242,10 +279,6 @@ public class BinarizationGUI {
             imageViewerFrame.setLocation(x, y);
         }
     }
-
-
-
-
 
 
     private BufferedImage matToBufferedImage(Mat mat) {
