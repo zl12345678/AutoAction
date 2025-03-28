@@ -1,15 +1,14 @@
 package com.auto.opencv.process;
 
+import com.auto.opencv.utils.Visualizer;
 import org.opencv.calib3d.Calib3d;
 import org.opencv.core.*;
-import org.opencv.features2d.BFMatcher;
 import org.opencv.features2d.DescriptorMatcher;
-import org.opencv.features2d.ORB;
 import org.opencv.features2d.SIFT;
+import org.opencv.highgui.HighGui;
 import org.opencv.imgproc.Imgproc;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -82,6 +81,118 @@ public class MapMatcher {
         return M;
     }
 
+
+    /**
+     * 使用模板匹配进行图像匹配
+     *
+     * @param largeMap 大地图（待匹配的目标图像）
+     * @param smallMap 小地图（待匹配的模板图像）
+     * @param method   匹配方法（如 Imgproc.TM_CCOEFF_NORMED）
+     * @return 仿射变换矩阵
+     */
+    public Mat matchByTemplate(Mat largeMap, Mat smallMap, int method) {
+        // 创建结果矩阵
+        Mat result = new Mat();
+        Imgproc.matchTemplate(largeMap, smallMap, result, method);
+
+        // 获取最佳匹配位置
+        Core.MinMaxLocResult mmr = Core.minMaxLoc(result);
+        Point matchLoc;
+        if (method == Imgproc.TM_SQDIFF || method == Imgproc.TM_SQDIFF_NORMED) {
+            matchLoc = mmr.minLoc; // 对于平方差方法，最小值是最佳匹配
+        } else {
+            matchLoc = mmr.maxLoc; // 对于其他方法，最大值是最佳匹配
+        }
+
+        // 计算仿射变换矩阵
+        Mat M = new Mat();
+        Mat inliers = new Mat();
+        M = Calib3d.estimateAffinePartial2D(
+                new MatOfPoint2f(new Point(matchLoc.x, matchLoc.y)), // 匹配点
+                new MatOfPoint2f(new Point(0, 0)), // 模板图像原点
+                inliers,
+                Calib3d.RANSAC,
+                3, 2000, 0.99, 10
+        );
+
+        return M;
+    }
+
+
+
+
+    /**
+     * 使用多尺度匹配进行图像匹配，并可视化匹配结果
+     *
+     * @param largeMap 大地图（待匹配的目标图像）
+     * @param smallMap 小地图（待匹配的模板图像）
+     * @param scales   缩放比例数组
+     * @return 最佳匹配得分
+     */
+    public double matchByResize(Mat largeMap, Mat smallMap, double[] scales) {
+        // 将图像转换为灰度图
+        Mat graySmallMap = new Mat();
+        Mat grayLargeMap = new Mat();
+        Imgproc.cvtColor(smallMap, graySmallMap, Imgproc.COLOR_BGR2GRAY);
+        Imgproc.cvtColor(largeMap, grayLargeMap, Imgproc.COLOR_BGR2GRAY);
+
+        // 使用 Otsu 方法进行二值化
+        Imgproc.threshold(graySmallMap, graySmallMap, THRESH, 255, Imgproc.THRESH_BINARY | Imgproc.THRESH_OTSU);
+        Imgproc.threshold(grayLargeMap, grayLargeMap, THRESH, 255, Imgproc.THRESH_BINARY | Imgproc.THRESH_OTSU);
+
+        double bestMatchValue = Double.MAX_VALUE;
+        Point bestMatchLoc = new Point();
+        double bestScale = 1.0;
+
+        // 遍历不同缩放比例
+        for (double scale : scales) {
+            // 调整大地图尺寸
+            Mat resizedLargeMap = new Mat();
+            Imgproc.resize(grayLargeMap, resizedLargeMap, new Size(), scale, scale, Imgproc.INTER_LINEAR);
+
+            // 执行模板匹配
+            Mat result = new Mat();
+            Imgproc.matchTemplate(resizedLargeMap, graySmallMap, result, Imgproc.TM_CCOEFF_NORMED);
+
+            // 获取匹配结果
+            Core.MinMaxLocResult mmr = Core.minMaxLoc(result);
+            double matchValue = 1 - mmr.maxVal; // 匹配得分（越小越好）
+
+            // 更新最佳匹配结果
+            if (matchValue < bestMatchValue) {
+                bestMatchValue = matchValue;
+                bestMatchLoc = mmr.maxLoc;
+                bestScale = scale;
+            }
+        }
+
+        // 可视化最佳匹配结果
+        visualizeMatch(largeMap, smallMap, bestMatchLoc, bestScale);
+
+        return bestMatchValue;
+    }
+    /**
+     * 可视化匹配结果
+     *
+     * @param largeMap     大地图（待匹配的目标图像）
+     * @param smallMap     小地图（待匹配的模板图像）
+     * @param bestMatchLoc 最佳匹配位置
+     * @param bestScale    最佳缩放比例
+     */
+    private void visualizeMatch(Mat largeMap, Mat smallMap, Point bestMatchLoc, double bestScale) {
+        // 调整大地图尺寸
+        Mat resizedLargeMap = new Mat();
+        Imgproc.resize(largeMap, resizedLargeMap, new Size(), bestScale, bestScale, Imgproc.INTER_LINEAR);
+
+        // 在匹配位置绘制矩形
+        Mat visualizedMat = resizedLargeMap.clone();
+        Point matchEnd = new Point(bestMatchLoc.x + smallMap.cols(), bestMatchLoc.y + smallMap.rows());
+        Imgproc.rectangle(visualizedMat, bestMatchLoc, matchEnd, new Scalar(0, 255, 0), 2);
+
+        // 显示匹配结果
+        HighGui.imshow("Match Result", visualizedMat);
+        HighGui.waitKey(1);
+    }
 
     /**
      * 计算小地图中心在大地图中的坐标
