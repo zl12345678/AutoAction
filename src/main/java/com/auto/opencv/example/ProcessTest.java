@@ -121,6 +121,7 @@ public class ProcessTest {
         while (true) {
             Mat largeMapClone = largeMap.clone();
             Point characterPosition = getMapCurrentPoint(largeMap);
+            System.out.println(characterPosition.x+characterPosition.y);
             visualizer.updateDisplayMat(largeMapClone);
             visualizer.drawMatchArea(characterPosition, new Size(100, 100));
             visualizer.drawCharacterPosition(characterPosition);
@@ -157,6 +158,7 @@ public class ProcessTest {
         Mat matchArea = extractCenterArea(smallMap, arrowCenter, 100);
         // 匹配大地图并计算人物位置
         Point characterPosition = matchLargeMap(largeMap, matchArea);
+        System.out.println(characterPosition.x+characterPosition.y);
         return new Point((int) characterPosition.x, (int) characterPosition.y);
     }
 
@@ -172,7 +174,7 @@ public class ProcessTest {
 
         // 设置起点和终点
         Point start = characterPosition;
-        Point end = new Point(140, 110);
+        Point end = new Point(779, 285);
         // 路径规划
         int[][] path = planPath(largeMap, start, end, 200.0);
 
