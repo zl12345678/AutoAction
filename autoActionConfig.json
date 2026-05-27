@@ -1,0 +1,142 @@
+{
+  "input": {
+    "clickBackend": "interception",
+    "interceptionHome": "D:\\Desktop\\Interception"
+  },
+  "vision": {
+    "miniMapRegion": {
+      "x": 64,
+      "width": 84,
+      "y": 86,
+      "height": 80
+    },
+    "yolo": {
+      "maxDetections": 25,
+      "classesOfInterest": [
+        "npc",
+        "drop",
+        "button"
+      ],
+      "confidenceThreshold": 0.25,
+      "inputHeight": 640,
+      "iouThreshold": 0.45,
+      "modelPath": "models/ui-detector.onnx",
+      "labelsPath": "models/ui-detector.labels.txt",
+      "region": {
+        "x": 560,
+        "width": 780,
+        "y": 260,
+        "height": 500
+      },
+      "inputWidth": 640,
+      "enabled": false
+    },
+    "windowTitle": "Torchlight: Infinite  ",
+    "mapClosure": {
+      "sealBorderWidth": 2,
+      "sealExterior": true,
+      "walkableThreshold": 200,
+      "morphCloseKernelSize": 3
+    },
+    "matchAreaSize": 80,
+    "mapImage": "img/sggd/largeMap_2.bmp",
+    "target": {
+      "x": 779,
+      "y": 285
+    },
+    "mapPreprocess": {
+      "alignmentUseEdges": true,
+      "useOtsu": false,
+      "removeOrangeMarkers": true,
+      "minTemplateScoreGap": 0.08,
+      "threshold": 127,
+      "mapRegion": {
+        "x": 0,
+        "width": 1600,
+        "y": 0,
+        "height": 900
+      },
+      "minTemplateScore": 0.48,
+      "binaryEnabled": true,
+      "orangeHueMin": 10,
+      "orangeSatMin": 80,
+      "orangeValMin": 80,
+      "orangeHueMax": 35
+    },
+    "navigation": {
+      "minLocalizationConfidence": 0.45,
+      "localizationSmoothingAlpha": 0.35,
+      "localizationMaxPredictFrames": 2,
+      "maxLocalizationJumpPx": 120,
+      "stuckTimeoutMs": 3000,
+      "stuckDistanceThreshold": 8,
+      "waypointReachDistance": 15,
+      "tickIntervalMs": 400,
+      "screenCalibration": {
+        "enabled": false,
+        "points": []
+      },
+      "maxStuckRetries": 3
+    },
+    "obstacleThreshold": 200,
+    "arrowTemplate": "img/arrow_template2.bmp",
+    "moveStep": 80,
+    "arriveDistance": 10,
+    "ocr": {
+      "regions": [
+        {
+          "name": "coords",
+          "scale": 2,
+          "threshold": 170,
+          "source": "WINDOW",
+          "whitelist": "0123456789, ",
+          "region": {
+            "x": 1200,
+            "width": 160,
+            "y": 24,
+            "height": 40
+          }
+        },
+        {
+          "name": "status",
+          "scale": 2,
+          "threshold": 165,
+          "source": "WINDOW",
+          "whitelist": "",
+          "region": {
+            "x": 820,
+            "width": 180,
+            "y": 46,
+            "height": 36
+          }
+        }
+      ],
+      "defaultWhitelist": "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ:-, ",
+      "pageSegMode": 7,
+      "language": "eng",
+      "enabled": false
+    }
+  },
+  "system": {"dryRun": false},
+  "uiAutomation": {
+    "timeoutMs": 8000,
+    "rules": [{
+      "name": "dismiss-confirmation",
+      "windowTitleContains": "Confirm",
+      "actions": [{
+        "automationId": "",
+        "controlType": "Button",
+        "name": "OK",
+        "pattern": "INVOKE"
+      }]
+    }],
+    "enabled": false,
+    "helperCommand": [
+      "powershell",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-File",
+      "tools/windows-ui-automation-helper.ps1"
+    ]
+  }
+}

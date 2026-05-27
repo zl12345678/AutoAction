@@ -33,20 +33,11 @@ public class PathPlanner {
             path.add(new Point(point[0], point[1]));
         }
         List<Point> points = simplifyPath(path);
-        // 拟人化路径
-        List<Point> humanizedPath = humanizePath(points);
-        int[][] finalPath = new int[humanizedPath.size()][2];
-        for (int i = 0; i < humanizedPath.size(); i++) {
-            finalPath[i][0] = (int) humanizedPath.get(i).x;
-            finalPath[i][1] = (int) humanizedPath.get(i).y;
-        }
-/*        int[][] finalPath = new int[points.size()][2];
+        int[][] finalPath = new int[points.size()][2];
         for (int i = 0; i < points.size(); i++) {
             finalPath[i][0] = (int) points.get(i).x;
             finalPath[i][1] = (int) points.get(i).y;
-        }*/
-        // 先简化原始路径
-        System.out.println(Arrays.deepToString(finalPath));
+        }
         return finalPath;
     }
 

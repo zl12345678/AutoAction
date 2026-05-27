@@ -1,0 +1,13 @@
+{
+  "name": "autoaction",
+  "private": true,
+  "scripts": {
+    "gitnexus:analyze": "gitnexus analyze",
+    "gitnexus:analyze:force": "gitnexus analyze --force",
+    "gitnexus:setup": "gitnexus setup",
+    "gitnexus:status": "gitnexus status"
+  },
+  "devDependencies": {
+    "gitnexus": "^1.6.5"
+  }
+}

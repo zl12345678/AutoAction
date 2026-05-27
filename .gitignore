@@ -30,10 +30,18 @@ target/
 build/
 !**/src/main/**/build/
 !**/src/test/**/build/
+.gradle/
+downloads/
+tools/gradle-*/
 
 ### VS Code ###
 .vscode/
 
+### GitNexus / Node (dev tooling) ###
+.gitnexus/
+node_modules/
+
 ### Mac OS ###
 .DS_Store
 /.idea/
+node_modules

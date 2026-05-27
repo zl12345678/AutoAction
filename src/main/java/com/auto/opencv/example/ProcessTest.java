@@ -1,14 +1,15 @@
 package com.auto.opencv.example;
 
+import com.auto.config.MapPreprocessConfig;
 import com.auto.opencv.process.MapMatcher;
+import com.auto.opencv.process.MapMatchResult;
 import com.auto.opencv.process.PathPlanner;
 import com.auto.opencv.utils.GameWindowClicker;
 import com.auto.opencv.utils.Visualizer;
-import org.junit.Test;
+import com.auto.vision.OpenCvLoader;
 import org.opencv.core.*;
 
 import java.awt.image.BufferedImage;
-import java.net.URL;
 
 import static com.auto.opencv.process.ArrowMatcher.matchArrow;
 import static com.auto.opencv.utils.ImageProcessor.*;
@@ -19,13 +20,10 @@ import static java.lang.Thread.sleep;
  */
 public class ProcessTest {
     static {
-        // 加载OpenCV本地库
-        URL url = ClassLoader.getSystemResource("lib/opencv/opencv_java4110.dll");
-        System.load(url.getPath());
+        OpenCvLoader.load();
     }
 
 //    地图匹配及规划路线可视化
-    @Test
     public void mapMatchTest() {
         // 加载大地图和游戏窗口截图
 
@@ -83,7 +81,6 @@ public class ProcessTest {
     }
 
     //    在小地图上定位人物箭头
-    @Test
     public void locatingArrow() {
         while (true) {
             GameWindowClicker gameWindowClicker = new GameWindowClicker("Torchlight: Infinite  ");
@@ -113,7 +110,6 @@ public class ProcessTest {
     }
 
     //    地图匹配-定位人物位置
-    @Test
     public void locatingPlayer() throws InterruptedException {
         Mat largeMap = loadImage("src/main/resources/img/sggd/largeMap_2.bmp");
         Visualizer visualizer = new Visualizer(largeMap, "das");
@@ -165,7 +161,6 @@ public class ProcessTest {
     /**
      * 寻路测试
      */
-    @Test
     public void wayFindingTest() {
         // 加载大地图和游戏窗口截图
         Mat largeMap = loadImage("src/main/resources/img/sggd/largeMap_2.bmp");
@@ -227,9 +222,9 @@ public class ProcessTest {
 
     // 匹配大地图并计算人物位置
     private Point matchLargeMap(Mat largeMap, Mat matchArea) {
-        MapMatcher mapMatcher = new MapMatcher(largeMap, matchArea);
-        Mat M = mapMatcher.match();
-        return mapMatcher.calculateCenter(M);
+        MapMatcher mapMatcher = MapMatcher.forLocalization(largeMap, matchArea, MapPreprocessConfig.defaults());
+        MapMatchResult result = mapMatcher.locate(new Point(matchArea.cols() / 2.0, matchArea.rows() / 2.0));
+        return result.mapPoint();
     }
 
     // 路径规划

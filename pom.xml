@@ -40,7 +40,7 @@
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.13.2</version>
-            <scope>compile</scope>
+            <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>com.opencv</groupId>  <!-- 自定义组 ID -->
@@ -65,7 +65,7 @@
                         <configuration>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <mainClass>com.auto.AutoClicker</mainClass>
+                                    <mainClass>com.auto.AutoActionStudio</mainClass>
                                 </transformer>
                             </transformers>
                         </configuration>

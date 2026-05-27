@@ -3,6 +3,7 @@ package com.auto.opencv;
 import com.auto.opencv.process.MapMatcher;
 import com.auto.opencv.utils.GameWindowClicker;
 import com.auto.opencv.utils.ImageProcessor;
+import com.auto.vision.OpenCvLoader;
 import org.opencv.core.*;
 import org.opencv.highgui.HighGui;
 import org.opencv.imgcodecs.Imgcodecs;
@@ -14,7 +15,6 @@ import java.awt.*;
 import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.net.URL;
 
 import static com.auto.opencv.utils.ImageProcessor.extractRegion;
 
@@ -359,8 +359,7 @@ public class BinarizationGUI {
     }
 
     public static void main(String[] args) {
-        URL url = ClassLoader.getSystemResource("lib/opencv/opencv_java4110.dll");
-        System.load(url.getPath());
+        OpenCvLoader.load();
 
         SwingUtilities.invokeLater(() -> {
             new BinarizationGUI();
